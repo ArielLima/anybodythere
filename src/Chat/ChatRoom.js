@@ -60,7 +60,7 @@ class ChatRoom extends Component {
 
     render() {
         return (
-          <div className="App">
+          <div className="Chat">
             <Messages
               messages={this.state.messages}
               currentMember={this.state.member}

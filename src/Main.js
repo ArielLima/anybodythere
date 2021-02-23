@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import ChatRoom from './Chat/ChatRoom';
+import Map from './Map/Map';
  
 class Main extends Component {
   render() {
@@ -8,7 +9,11 @@ class Main extends Component {
         <div className="App-header">
           <h1>anybody there</h1>
         </div>
-        <ChatRoom/>
+        <div className="container">
+          <Map/>
+          <ChatRoom/>          
+        </div>
+        
       </div>
     );
   }
