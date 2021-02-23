@@ -21,7 +21,7 @@ export function CreateDBConnection() {
 // Public 
 export function ComparePassword(decrypted, encrypted, salt) {
   console.log(salt)
-  return encrypted === decryptPassword(decrypted, salt)
+  return decrypted === decryptPassword(encrypted, salt)
 }
 
 export function EncryptPassword(string, salt) {
@@ -29,11 +29,10 @@ export function EncryptPassword(string, salt) {
 }
 
 export function GenerateSalt() {
-  return  CryptoJS.lib.WordArray.random(128/8).toString();
+  return CryptoJS.lib.WordArray.random(128/8).toString();
 }
 
 // Private
 function decryptPassword(encryptedString, salt) {
-  console.log(salt)
   return CryptoJS.AES.decrypt(encryptedString, salt).toString(CryptoJS.enc.Utf8);
 }
