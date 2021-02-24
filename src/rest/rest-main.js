@@ -7,7 +7,7 @@ app.listen(3000, () => {
 });
 
 // New User
-app.post("/new-user", (req, res, next) => {
+app.post("/new-user", (req, res) => {
     var user = new User(req.query.user_id, req.query.user_pass, req.query.user_zip)
     user.createUser(user).then(function() {
         res.send({
@@ -24,9 +24,8 @@ app.post("/new-user", (req, res, next) => {
 });
 
 // Login
-app.get("/login", (req, res, next) => {
+app.get("/login", (req, res) => {
     var user = new User(req.query.user_id, req.query.user_pass, req.query.user_zip)
-    console.log(user.id, user.password, user.zip)
     user.validateUser(user).then(function () {
         res.send({
             success: true,
@@ -39,3 +38,19 @@ app.get("/login", (req, res, next) => {
         })
     })
 });
+
+// Remove User
+app.post("/remove-user", (req, res) => {
+    var user = new User(req.query.user_id, req.query.user_pass, req.query.user_zip)
+    user.removeUser(user).then(function () {
+        res.send({
+            success: true,
+            message: "Successfully removed user."
+        })
+    }).catch(function () {
+        res.send({
+            success: false,
+            message: "Failed to delete user, please try again later."
+        })
+    })
+})
