@@ -40,7 +40,7 @@ class ChatRoom extends Component {
         });
 
         // Create a room
-        const room = this.drone.subscribe("observable-room");
+        const room = this.drone.subscribe("observable-chat");
 
         // Listen for messages
         room.on('data', (data, member) => {
@@ -52,7 +52,7 @@ class ChatRoom extends Component {
 
       onSendMessage = (message) => {
         this.drone.publish({
-          room: "observable-room",
+          room: "observable-chat",
           message
         });
       }
