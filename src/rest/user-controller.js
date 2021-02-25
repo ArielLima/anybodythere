@@ -18,7 +18,7 @@ export default class User {
             EncryptPassword(user.password, user.salt),
             user.zip,
             user.salt
-        ],function (error, results, fields) {
+        ],function (error, results) {
             if (error) return reject(error);
             else return resolve(results);
         });
@@ -32,15 +32,28 @@ export default class User {
       return new Promise(function (resolve, reject) {
           conn.query("SELECT * FROM anybodythere.USER WHERE user_id = ?", [
             user.id
-          ], function (error, results, fields) {
-            if (error) return reject(error)
-            else {
-                // Verify that the provided password matches the one in the database
-                if (ComparePassword(user.password, results[0].user_pass, results[0].salt)) {
+          ], function (error, results) {
+              if (error) return reject(error)
+              else {
+                  // Verify that the provided password matches the one in the database
+                  if (ComparePassword(user.password, results[0].user_pass, results[0].salt)) {
                     return resolve(results);
-                }
+                  }
             }
           });
       });
   }
+
+  // removeUser removes a used with the given id
+  async removeUser(user) {
+      var conn = CreateDBConnection()
+      return new Promise(function (resolve, reject) {
+          conn.query("DELETE FROM anybodythere.USER WHERE user_id = ?", [
+              user.id
+          ], function (error, results) {
+              if (error) return reject(error)
+              else return resolve(results);
+          });
+      });
+    }
 }
