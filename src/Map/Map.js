@@ -4,7 +4,8 @@ import {
   Geographies,
   Geography,
   ZoomableGroup,
-  Marker
+  Marker,
+  useZoomPan
 } from "react-simple-maps";
 
 const geoUrl =
@@ -13,8 +14,8 @@ const geoUrl =
 // LONGITUDE -180 to + 180
 function generateRandomLong() {
     var num = (Math.random()*180).toFixed(3);
-    var posorneg = Math.floor(Math.random());
-    if (posorneg == 0) {
+    var posorneg = Math.random();
+    if (posorneg < 0.5) {
         num = num * -1;
     }
     return num;
@@ -22,12 +23,26 @@ function generateRandomLong() {
 // LATITUDE -90 to +90
 function generateRandomLat() {
     var num = (Math.random()*90).toFixed(3);
-    var posorneg = Math.floor(Math.random());
-    if (posorneg == 0) {
+    var posorneg = Math.random();
+    if (posorneg < 0.5) {
         num = num * -1;
     }
     return num;
 }
+
+const width = 800;
+const height = 600;
+
+// Used allow zooming on map, without the markers getting bigger
+const CustomZoomableGroup = ({ children, ...restProps }) => {
+  const { mapRef, transformString, position } = useZoomPan(restProps);
+  return (
+    <g ref={mapRef}>
+      <rect width={width} height={height} fill="transparent" />
+      <g transform={transformString}>{children(position)}</g>
+    </g>
+  );
+};
 
 class Map extends Component {
 
@@ -136,38 +151,36 @@ class Map extends Component {
     render() {
         return (
             <div className="Map">
-                <ComposableMap data-tip="" projectionConfig={{ scale: 200 }}>
-                    <ZoomableGroup>
-                        <Geographies geography={geoUrl}>
-                            {({ geographies }) =>
-                                geographies.map((geo) => (
-                                    <Geography
-                                        key={geo.rsmKey}
-                                        geography={geo}
-                                        style={{
-                                            default: {
-                                            fill: "lightgray",
-                                            outline: "none"
-                                        },
-                                            hover: {
-                                            fill: "#F53",
-                                            outline: "none"
-                                        },
-                                            pressed: {
-                                            fill: "#E42",
-                                            outline: "none"
-                                        }
-                                    }}
-                                    />
-                                ))
-                            }
-                        </Geographies>
-                        {this.state.markers.map(({ coordinates }) => (
+                <ComposableMap data-tip="" projectionConfig={{ scale: 200 }} width={820} height={520}>
+                    <CustomZoomableGroup center={[15, 0]}>
+                    {position => (
+                        <>
+                            <Geographies geography={geoUrl}>
+                                {({ geographies }) =>
+                                    geographies.map((geo) => (
+                                        <Geography
+                                            key={geo.rsmKey}
+                                            geography={geo}
+                                            style={{
+                                                default: {
+                                                fill: "white"
+                                            },
+                                                hover: {
+                                                fill: "white",
+                                                stroke: "lightgray"
+                                            }
+                                        }}
+                                        />
+                                    ))
+                                }
+                            </Geographies>
+                            {this.state.markers.map(({ coordinates }) => (
                             <Marker coordinates={coordinates}>
-                            <circle r={10} fill="#F00" stroke="#fff" strokeWidth={2} />
-                            </Marker>
-                        ))}
-                    </ZoomableGroup>
+                                <circle r={6 / position.k} fill="red" />
+                            </Marker>))}
+                        </>
+                    )}
+                    </CustomZoomableGroup>
                 </ComposableMap>              
             </div>
         );
