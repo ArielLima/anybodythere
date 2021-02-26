@@ -6,7 +6,7 @@ class Main extends Component {
   render() {
     return (
       <div>
-        <div className="App-header">
+        <div className="header">
           <h1>anybody there</h1>
         </div>
         <div className="container">
