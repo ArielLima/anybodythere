@@ -1,76 +1,47 @@
-import React, { Component } from "react";
-import Messages from './Components/Messages';
+import React, { useRef, Component, useState } from "react";
+import { Message } from './Components/Message.js';
 import Input from "./Components/Input"
+import firebase from 'firebase/app';
+import { auth, firestore, getUsername } from '../utils';
 
-function randomName() {
-    const adjectives = ["autumn", "hidden", "bitter", "misty", "silent", "empty", "dry", "dark", "summer", "icy", "delicate", "quiet", "white", "cool", "spring", "winter", "patient", "twilight", "dawn", "crimson", "wispy", "weathered", "blue", "billowing", "broken", "cold", "damp", "falling", "frosty", "green", "long", "late", "lingering", "bold", "little", "morning", "muddy", "old", "red", "rough", "still", "small", "sparkling", "throbbing", "shy", "wandering", "withered", "wild", "black", "young", "holy", "solitary", "fragrant", "aged", "snowy", "proud", "floral", "restless", "divine", "polished", "ancient", "purple", "lively", "nameless"];
-    const nouns = ["waterfall", "river", "breeze", "moon", "rain", "wind", "sea", "morning", "snow", "lake", "sunset", "pine", "shadow", "leaf", "dawn", "glitter", "forest", "hill", "cloud", "meadow", "sun", "glade", "bird", "brook", "butterfly", "bush", "dew", "dust", "field", "fire", "flower", "firefly", "feather", "grass", "haze", "mountain", "night", "pond", "darkness", "snowflake", "silence", "sound", "sky", "shape", "surf", "thunder", "violet", "water", "wildflower", "wave", "water", "resonance", "sun", "wood", "dream", "cherry", "tree", "fog", "frost", "voice", "paper", "frog", "smoke", "star"];
-    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const noun = nouns[Math.floor(Math.random() * nouns.length)];
-    return adjective + noun;
+import { useCollectionData } from 'react-firebase-hooks/firestore';
+
+export function ChatRoom() {
+  const dummy = useRef();
+  const messagesRef = firestore.collection('messages');
+  const query = messagesRef.orderBy("createdAt", "desc").limit(25);
+
+  const [messages] = useCollectionData(query, { idField: 'id' });
+
+  const [formValue, setFormValue] = useState('');
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+
+    const { uid, _ } = auth.currentUser;
+    const username = getUsername();
+    if (formValue) {
+      await messagesRef.add({
+        text: formValue,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        uid,
+        username
+      })
+    }
+
+    setFormValue('');
+    dummy.current.scrollIntoView({ behavior: 'smooth' });
   }
-  
-  function randomColor() {
-    return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16);
-  }
- 
-class ChatRoom extends Component {
-    
-    state = {
-        messages: [],
-        member: {
-          username: randomName()
-        }
-      }
 
-      constructor() {
-        super();
-
-        // Instantiate a new instance of Scaledrone
-        this.drone = new window.Scaledrone("tHOdFNSvsdAdax1Q", {
-          data: this.state.member
-        });
-        this.drone.on('open', error => {
-          if (error) {
-            return console.error(error);
-          }
-          const member = {...this.state.member};
-          member.id = this.drone.clientId;
-          this.setState({member});
-        });
-
-        // Create a room
-        const room = this.drone.subscribe("observable-room");
-
-        // Listen for messages
-        room.on('data', (data, member) => {
-            const messages = this.state.messages;
-            messages.push({member, text: data});
-            this.setState({messages});
-          });
-      }
-
-      onSendMessage = (message) => {
-        this.drone.publish({
-          room: "observable-room",
-          message
-        });
-      }
-  
-
-    render() {
-        return (
-          <div className="Chat">
-            <Messages
-              messages={this.state.messages}
-              currentMember={this.state.member}
-            />
-            <Input
-                onSendMessage={this.onSendMessage}
-            />
-          </div>
-        );
-      }
+  return (
+    <div>
+      <ul className="Messages-list">
+        {messages && messages.map(msg => <Message key={msg.id} message={msg} />).reverse()}
+        <span ref={dummy}></span>
+      </ul>
+      <form onSubmit={sendMessage}>
+        <input value={formValue} onChange={(e) => setFormValue(e.target.value)} placeholder="say something nice" />
+        <button type="submit" >Send</button>
+      </form>
+    </div>)
 }
- 
-export default ChatRoom;

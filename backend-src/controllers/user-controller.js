@@ -36,8 +36,12 @@ export default class User {
               if (error) return reject(error)
               else {
                   // Verify that the provided password matches the one in the database
-                  if (ComparePassword(user.password, results[0].user_pass, results[0].salt)) {
-                    return resolve(results);
+                  try{
+                    if (ComparePassword(user.password, results[0].user_pass, results[0].salt)) {
+                      return resolve(results);
+                    } 
+                  }catch(err) {
+                    return reject(err)
                   }
             }
           });
