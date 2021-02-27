@@ -34,7 +34,7 @@ export function ChatRoom() {
   }
 
   return (
-    <div>
+    <div className="Chat">
       <ul className="Messages-list">
         {messages && messages.map(msg => <Message key={msg.id} message={msg} />).reverse()}
         <span ref={dummy}></span>

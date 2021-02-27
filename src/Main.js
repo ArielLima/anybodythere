@@ -22,6 +22,20 @@ function App() {
       <div className="header">
         <h1>anybody there</h1>
       </div>
+      <div className="container">
+        <Map />
+        <ChatRoom />
+      </div>
+
+    </div>
+  );
+
+  return (
+    <div className="App">
+      <header>
+        <SignOut />
+      </header>
+
 
       <section>
         {user ? Home : <SignIn />}
