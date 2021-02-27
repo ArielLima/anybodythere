@@ -3,60 +3,185 @@ import {
   ComposableMap,
   Geographies,
   Geography,
-  ZoomableGroup
+  ZoomableGroup,
+  Marker,
+  useZoomPan
 } from "react-simple-maps";
 
 const geoUrl =
   "https://raw.githubusercontent.com/zcreativelabs/react-simple-maps/master/topojson-maps/world-110m.json";
 
+// LONGITUDE -180 to + 180
+function generateRandomLong() {
+    var num = (Math.random()*180).toFixed(3);
+    var posorneg = Math.random();
+    if (posorneg < 0.5) {
+        num = num * -1;
+    }
+    return num;
+}
+// LATITUDE -90 to +90
+function generateRandomLat() {
+    var num = (Math.random()*90).toFixed(3);
+    var posorneg = Math.random();
+    if (posorneg < 0.5) {
+        num = num * -1;
+    }
+    return num;
+}
+
+const width = 800;
+const height = 600;
+
+// Used allow zooming on map, without the markers getting bigger
+const CustomZoomableGroup = ({ children, ...restProps }) => {
+  const { mapRef, transformString, position } = useZoomPan(restProps);
+  return (
+    <g ref={mapRef}>
+      <rect width={width} height={height} fill="transparent" />
+      <g transform={transformString}>{children(position)}</g>
+    </g>
+  );
+};
+
 class Map extends Component {
 
     state = {
-        position: {
-            coordinates: [0, 0],
-            zoom: 1
-        }
+        markers : [],
+        members : []
     };
 
     constructor() {
         super();
+
+        this.updateLocation = this.updateLocation.bind(this);        
     }
 
-    componentWillMount() {
+    componentDidMount() {
+
+        const drone = new window.Scaledrone('tHOdFNSvsdAdax1Q');
+        drone.on('error', error => console.error(error));
+        drone.on('close', reason => console.error(reason));
+        drone.on('open', error => {
+            if (error) {
+                return console.error(error);
+            }
+        });
+
+        const room = drone.subscribe('observable-locations', {
+            historyCount: 100 // load 100 past messages (this will get user locations)
+        });
         
+        const {longitude, latitude} = this.getLocation();
+
+        room.on('open', error => {
+            if (error) {
+                return console.error(error);
+            }        
+            drone.publish({
+                room: 'observable-locations',
+                message: {latitude, longitude}
+            });
+
+            this.updateLocation({longitude: longitude, latitude: latitude}, drone.clientId);
+        });
+        // received past message
+        room.on('history_message', message => {
+            this.updateLocation(message.data, message.clientId)
+        });
+        // received new message
+        room.on('data', (data, member) => {
+            this.updateLocation(data, member.id)
+        });
+        // array of all connected members
+        room.on('members', members =>
+            this.setState({members})
+        );
+        // new member joined room
+        room.on('member_join', member => {
+            const members = this.state.members.slice(0);
+            members.push(member);
+            this.setState({members});
+        });
+        // member left room
+        room.on('member_leave', member => {
+            this.removeMember(member);
+        });
+    }
+
+    removeMember(member) {
+        const members = this.state.members.slice(0);
+        const index = members.findIndex(m => m.id === member.id);
+        if (index !== -1) {
+            members.splice(index, 1);
+            this.setState({members});
+
+            // remove marker
+            const markers = this.state.markers.slice(0);
+            const marker_index = markers.findIndex(m => m.clientID === member.id);
+            if (index !== -1) {
+                markers.splice(marker_index, 1);
+                this.setState({markers});
+            }
+        }
+    }
+    
+    updateLocation(data, memberId) {
+        const members = this.state.members;        
+
+        const member = members.find(m => m.id === memberId);
+        console.log(member);
+
+        if (!member) {
+            // a history message might be sent from a user who is no longer online
+            return;
+        }
+        if (member) {
+            const markers = this.state.markers;
+            markers.push({coordinates: [data.longitude, data.latitude], clientID: memberId});
+            this.setState({markers});
+        }
+       
+    }
+
+    getLocation() {
+        return { longitude: generateRandomLong(), latitude: generateRandomLat() };
     }
 
     render() {
         return (
             <div className="Map">
-                <ComposableMap data-tip="" projectionConfig={{ scale: 200 }}>
-                    <ZoomableGroup>
-                    <Geographies geography={geoUrl}>
-                        {({ geographies }) =>
-                        geographies.map((geo) => (
-                            <Geography
-                            key={geo.rsmKey}
-                            geography={geo}
-                            style={{
-                                default: {
-                                fill: "lightgray",
-                                outline: "none"
-                                },
-                                hover: {
-                                fill: "#F53",
-                                outline: "none"
-                                },
-                                pressed: {
-                                fill: "#E42",
-                                outline: "none"
+                <ComposableMap data-tip="" projectionConfig={{ scale: 200 }} width={820} height={520}>
+                    <CustomZoomableGroup center={[15, 0]}>
+                    {position => (
+                        <>
+                            <Geographies geography={geoUrl}>
+                                {({ geographies }) =>
+                                    geographies.map((geo) => (
+                                        <Geography
+                                            key={geo.rsmKey}
+                                            geography={geo}
+                                            style={{
+                                                default: {
+                                                fill: "white"
+                                            },
+                                                hover: {
+                                                fill: "white",
+                                                stroke: "lightgray"
+                                            }
+                                        }}
+                                        />
+                                    ))
                                 }
-                            }}
-                            />
-                        ))
-                        }
-                    </Geographies>
-                    </ZoomableGroup>
-                </ComposableMap>                
+                            </Geographies>
+                            {this.state.markers.map(({ coordinates }) => (
+                            <Marker coordinates={coordinates}>
+                                <circle r={6 / position.k} fill="red" />
+                            </Marker>))}
+                        </>
+                    )}
+                    </CustomZoomableGroup>
+                </ComposableMap>              
             </div>
         );
     }

@@ -13,7 +13,6 @@ import { useCollectionData } from 'react-firebase-hooks/firestore';
 import { ChatRoom } from './Chat/ChatRoom.js';
 import Map from './Map/Map';
 
-
 function App() {
 
   const [user] = useAuthState(auth);
@@ -23,21 +22,6 @@ function App() {
       <div className="header">
         <h1>anybody there</h1>
       </div>
-      <div className="container">
-        <Map />
-        <ChatRoom />
-      </div>
-
-    </div>
-  );
-
-  return (
-    <div className="App">
-      <header>
-        <h1>⚛️🔥💬</h1>
-        <SignOut />
-      </header>
-
 
       <section>
         {user ? Home : <SignIn />}
