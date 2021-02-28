@@ -10,7 +10,7 @@ import { auth, firestore } from './utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 
-import { ChatRoom } from './Chat/ChatRoom.js';
+import Chat from './Chat/Chat';
 import Map from './Map/Map';
 
 function App() {
@@ -24,7 +24,7 @@ function App() {
       </div>
       <div className="container">
         <Map />
-        <ChatRoom />
+        <Chat />
       </div>
 
     </div>

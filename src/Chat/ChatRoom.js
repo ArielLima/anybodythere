@@ -1,10 +1,11 @@
 import React, { useRef, Component, useState } from "react";
-import { Message } from './Components/Message.js';
-import Input from "./Components/Input"
 import firebase from 'firebase/app';
 import { auth, firestore, getUsername } from '../utils';
-
 import { useCollectionData } from 'react-firebase-hooks/firestore';
+
+import { Message } from './Components/Message.js';
+import Navbar from './Navbar';
+import Input from "./Components/Input";
 
 export function ChatRoom() {
   const dummy = useRef();
@@ -35,13 +36,15 @@ export function ChatRoom() {
 
   return (
     <div className="Chat">
-      <ul className="Messages-list">
-        {messages && messages.map(msg => <Message key={msg.id} message={msg} />).reverse()}
-        <span ref={dummy}></span>
-      </ul>
-      <form onSubmit={sendMessage}>
-        <input value={formValue} onChange={(e) => setFormValue(e.target.value)} placeholder="say something nice" />
-        <button type="submit" >Send</button>
-      </form>
+      <div>
+        <ul className="Messages-list">
+          {messages && messages.map(msg => <Message key={msg.id} message={msg} />).reverse()}
+          <span ref={dummy}></span>
+        </ul>
+        <form onSubmit={sendMessage}>
+          <input value={formValue} onChange={(e) => setFormValue(e.target.value)} placeholder="say something nice" />
+          <button className="send-button" type="submit" >Send</button>
+        </form>
+      </div>
     </div>)
 }
