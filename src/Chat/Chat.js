@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import Navbar from './Navbar';
 import { ChatRoom } from './ChatRoom';
+import MyChats from './MyChats';
 
 class Chat extends Component {
     state = { renderGlobal: true };
@@ -19,7 +20,7 @@ class Chat extends Component {
         // Default world 
         var component = this.state.renderGlobal ? (
             <ChatRoom />
-        ) : (<div></div >);
+        ) : <MyChats />;
 
         return (
             <div className="Chat">
