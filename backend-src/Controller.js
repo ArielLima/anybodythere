@@ -7,10 +7,10 @@ app.listen(3000, () => {
 });
 
 // New User
-app.post("/random-chat", (req, res) => {
+app.post("/random-chat", async (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
     const userID = req.query.uid
-    var reply = new ChatJobQueue(userID, callBack);
+    var reply = await new ChatJobQueue().begin(userID);
     res.send(reply)
 });
 

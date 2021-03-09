@@ -37,8 +37,8 @@ export default class ProcessChatJob {
         return this.q
     }
 
-    addJob(job) {
-        this.q.push(job)
+    addJob(job, callback) {
+        this.q.push(job, callback)
     }
 
     async proccessNewChatJob(job, callback) {
@@ -56,7 +56,10 @@ export default class ProcessChatJob {
         // Update the docs of each user in firestore
         // addNewChatToFirestoreUser(job.user_one, chatName)
         // addNewChatToFirestoreUser(job.user_two, chatName)
-        callback("aaa")
+        callback({
+            id: job.id,
+            chat_name: chatName
+        })
     }
 
     addNewChatToFirestoreUser(uids, chatName) {
