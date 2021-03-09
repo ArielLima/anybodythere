@@ -20,7 +20,7 @@ admin.initializeApp({
 
 const dbf = admin.firestore();
 
-export default class ProcessChatJob {
+export default class RandomChatCreationQueue {
     constructor(jobID) {
         // Initialize queue
         this.q = new Queue(this.proccessNewChatJob, {
@@ -33,17 +33,22 @@ export default class ProcessChatJob {
         });
     }
 
-    getQueue() {
-        return this.q
-    }
-
+    /**
+     * Allows adding jobs to RandomChatCreationQueue
+     * @param {object} job - info needed to process a chat creation job
+     * @param {function} callback
+     */
     addJob(job, callback) {
         this.q.push(job, callback)
     }
 
+    /**
+     * Create a firestore collection that we will use as a chat room
+     * @param {object} job - info needed to process a chat creation job
+     * @param {*} callback
+     */
     async proccessNewChatJob(job, callback) {
         let chatName = job.user_one + '.' + job.user_two
-
         // create firestore collection for new private chat
         const newChatRef = dbf.collection(chatName)
         await newChatRef.add({
@@ -54,20 +59,25 @@ export default class ProcessChatJob {
         })
 
         // Update the docs of each user in firestore
-        // addNewChatToFirestoreUser(job.user_one, chatName)
-        // addNewChatToFirestoreUser(job.user_two, chatName)
+        addNewChatToFirestoreUser(job.user_one, chatName)
+        addNewChatToFirestoreUser(job.user_two, chatName)
         callback({
             id: job.id,
             chat_name: chatName
         })
     }
+}
 
-    addNewChatToFirestoreUser(uids, chatName) {
-        const userRef = dbf.collection('users').doc(uids);
-        userRef.update({
-            chats: admin.firestore.FieldValue.arrayUnion(chatName)
-        }).catch(function (err, res) {
-            console.log(err)
-        });
-    }
+/**
+     * Will add a chat to users chat array in firestore user doc
+     * @param {string} user - firestore user (id)
+     * @param {string} chatName - name of the chat created
+     */
+function addNewChatToFirestoreUser(user, chatName) {
+    const userRef = dbf.collection('users').doc(user);
+    userRef.update({
+        chats: admin.firestore.FieldValue.arrayUnion(chatName)
+    }).catch(function (err, res) {
+        console.log(err)
+    });
 }
