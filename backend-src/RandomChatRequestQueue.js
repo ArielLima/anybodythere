@@ -27,7 +27,8 @@ export default class RandomChatRequestQueue {
         });
 
         // push user into the queue
-        q.push({ uid: userID }, function (err, result) {
+        console.log(userID, 1)
+        q.push(userID, function (err, result) {
             console.log("User added to chat waiting list")
         })
 
@@ -59,7 +60,8 @@ export default class RandomChatRequestQueue {
      * @param {object} job Contains userID, for now
      * @param {*} callback It just is
      */
-    async proccessNewChatRequest(job, callback) {
+    async proccessNewChatRequest(uid, callback) {
+        console.log(uid, 3)
         // Look for waiting users to pair with
         var reply = await new Promise((resolve, reject) => {
             db.all("SELECT * FROM RANDOM_CHAT_QUEUE", function (err, row) {
@@ -80,10 +82,10 @@ export default class RandomChatRequestQueue {
 
         // If no user was found, create job id and insert a record into the db
         if (count < 1) {
-            console.log(job.uid, 2)
+            console.log(uid, 2)
             var jobID = Math.round((Math.pow(36, 10 + 1) - Math.random() * Math.pow(36, 10))).toString(36).slice(1);
             db.run("INSERT INTO RANDOM_CHAT_QUEUE (user_one, job_id) VALUES ($user_one, $job_id)", {
-                $user_one: job.uid,
+                $user_one: uid,
                 $job_id: jobID
             });
             eventEmitter.emit("JOBID", jobID)
@@ -92,7 +94,7 @@ export default class RandomChatRequestQueue {
             // If a user was found, add job to RandomChatCreationQueue queue
             new RandomChatCreationQueue(this.jobID).addJob({
                 user_one: reply[0].user_one,
-                user_two: job.uid,
+                user_two: uid,
                 id: reply[0].job_id
             }, emitDone)
             // Send new jobID created event

@@ -1,19 +1,25 @@
 import react from 'react';
-import { USERID, firestore } from '../utils.js';
+import { USERID, BACKENDURL, firestore } from '../utils.js';
+import axios from 'axios';
 
 function MyChats() {
     return (
         <div className="new-single-chat-button">
-            <button className="new-single-chat-button" onClick={() => getAllOngoingChats("zzzz")}>Chat with someone new</button>
+            <button className="new-single-chat-button" onClick={randomChatRequest}>Chat with someone new</button>
         </div>
     )
 }
 
-async function randomChatRequest(uid, username) {
-    const randomChatRef = firestore.collection('random-chat-request');
-    await randomChatRef.add({
-        userID: uid,
-        username: username
+async function randomChatRequest() {
+    await axios({
+        method: "post",
+        url: "http://localhost:3001/random-chat?uid=qqqq",
+        header: "Access-Control-Allow-Origin",
+        data: {
+            uid: USERID
+        }
+    }).then(resp => {
+        console.log(resp.data)
     })
 }
 
