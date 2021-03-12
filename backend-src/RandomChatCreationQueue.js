@@ -74,7 +74,7 @@ export default class RandomChatCreationQueue {
      * @param {string} chatName - name of the chat created
      */
 function addNewChatToFirestoreUser(user, chatName) {
-    const userRef = dbf.collection('users').doc(user);
+    const userRef = dbf.collection('status').doc(user);
     userRef.update({
         chats: admin.firestore.FieldValue.arrayUnion(chatName)
     }).catch(function (err, res) {

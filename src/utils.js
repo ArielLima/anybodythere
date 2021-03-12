@@ -19,7 +19,7 @@ firebase.initializeApp({
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 export const analytics = firebase.analytics();
-export const BACKENDURL = "http://localhost:3000"
+export const BACKENDURL = "http://localhost:3001"
 export const USERID = auth.currentUser;
 
 // Exported functions
