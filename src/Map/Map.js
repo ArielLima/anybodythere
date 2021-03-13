@@ -130,7 +130,7 @@ class Map extends Component {
         const members = this.state.members;
 
         const member = members.find(m => m.id === memberId);
-        console.log(member);
+        // console.log(member);
 
         if (!member) {
             // a history message might be sent from a user who is no longer online

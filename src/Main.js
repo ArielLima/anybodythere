@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import axios from 'axios';
 import './index.css';
 import firebase from 'firebase/app';
 import { auth, firestore, setUsername } from './utils';
@@ -13,6 +14,7 @@ var hasRendered = false;
 function App() {
   const [user] = useAuthState(auth);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [exists, setUserExists] = useState(true)
 
   const setModalIsOpenToTrue = () => {
     setModalIsOpen(true)
@@ -22,9 +24,18 @@ function App() {
     setModalIsOpen(false)
   }
 
+  const setUserExistsToTrue = () => {
+    setUserExists(true)
+  }
+
+  const setUserExistsToFalse = () => {
+    setUserExists(false)
+  }
+
   if (user) {
     detectPresence();
-    if (!hasRendered && !userDocExists()) {
+    userExists(setUserExistsToTrue, setUserExistsToFalse)
+    if (!hasRendered && !exists) {
       console.log("USER DOC NOT EXISTS");
       hasRendered = true;
       setModalIsOpenToTrue();
@@ -84,20 +95,22 @@ function SignOut() {
 /** 
  * Is this a new user?
  */
-function userDocExists() {
-  // Fetch the current user's ID from Firebase Authentication.
-  const { uid, _ } = auth.currentUser;
-
-  // create a reference to the doc in question
-  var userCollectionRef = firestore.collection("users").doc(uid)
-
-  // Check if the user has a doc
-  var exists = false;
-  userCollectionRef.get().then((doc) => {
-    exists = doc.exists
+function userExists(trueFunc, falseFunc) {
+  const instance = axios.create({
+    baseURL: 'http://127.0.0.1:3001',
+    headers: { 'Access-Control-Allow-Origin': '*' }
+  });
+  instance.get("/validate-username", {
+    params: {
+      uid: auth.currentUser.uid
+    }
+  }).then(function (reply) {
+    if (reply.data.success) {
+      trueFunc()
+    } else {
+      falseFunc()
+    }
   })
-
-  return exists;
 }
 
 async function usernameExists() {
@@ -116,7 +129,6 @@ async function usernameExists() {
     }
     return true
   })
-
   return reply
 }
 

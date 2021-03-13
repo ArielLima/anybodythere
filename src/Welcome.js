@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import Modal from 'react-modal';
-import { auth, firestore, setUsername } from './utils';
+import axios from 'axios';
+import { auth, firestore, checkUsername } from './utils';
 
 function Welcome(props) {
 
@@ -8,7 +8,7 @@ function Welcome(props) {
     const handleSubmit = (e) => {
         setUsername(username)
         console.log(username)
-        addUserDoc(username)
+        submitUsername(username)
         props.onSubmit()
 
         e.preventDefault();
@@ -28,6 +28,36 @@ function Welcome(props) {
     )
 
 }
+
+async function submitUsername(username) {
+    const instance = axios.create({
+        baseURL: 'http://127.0.0.1:3001',
+        headers: { 'Access-Control-Allow-Origin': '*' }
+    });
+    console.log(auth.currentUser.uid)
+    var body = {
+        "username": username,
+        "uid": auth.currentUser.uid
+    }
+    instance.post("/create-username", body).then(resp => {
+        console.log(resp.data)
+    })
+}
+
+async function validateUsername(username) {
+    const instance = axios.create({
+        baseURL: 'http://127.0.0.1:3001',
+        headers: { 'Access-Control-Allow-Origin': '*' }
+    });
+    instance.get("/validate-username", {
+        params: {
+            username: username
+        }
+    }).then(resp => {
+        console.log(resp.data)
+    })
+}
+
 
 function addUserDoc(username) {
     console.log("Trying to add user doc...")
