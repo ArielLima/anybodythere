@@ -20,14 +20,8 @@ async function randomChatRequest() {
     var body = { "uid": auth.currentUser.uid }
     instance.post("/random-chat", body).then(resp => {
         console.log(resp.data)
+        // return new chatroom or set state variable causing it to render
     })
-    // await axios.post("/random-chat", { Headers: { "Access-Control-Allow-Origin": "*" } }, {
-    //     params: {
-    //         uid: USERID
-    //     }
-    // }).then(resp => {
-    //     console.log(resp.data)
-    // })
 }
 
 async function getAllOngoingChats(uid) {

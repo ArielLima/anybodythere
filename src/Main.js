@@ -1,25 +1,34 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './index.css';
 import firebase from 'firebase/app';
-import { auth, firestore } from './utils';
+import { auth, firestore, setUsername } from './utils';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import Popup from 'reactjs-popup';
-import 'reactjs-popup/dist/index.css';
-
+import Modal from 'react-modal';
+import Welcome from './Welcome';
 import Chat from './Chat/Chat';
 import Map from './Map/Map';
 
+var hasRendered = false;
+
 function App() {
   const [user] = useAuthState(auth);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
-  var Pop = (<div></div>)
+  const setModalIsOpenToTrue = () => {
+    setModalIsOpen(true)
+  }
+
+  const setModalIsOpenToFalse = () => {
+    setModalIsOpen(false)
+  }
+
   if (user) {
     detectPresence();
-    // Pop = (
-    //   <Popup trigger={usernameExists()} position="center center">
-    //     <div>Popup content here !!</div>
-    //   </Popup>
-    // )
+    if (!hasRendered && !userDocExists()) {
+      console.log("USER DOC NOT EXISTS");
+      hasRendered = true;
+      setModalIsOpenToTrue();
+    }
   }
 
   const Home = (
@@ -28,9 +37,11 @@ function App() {
         <h1>anybody there</h1>
       </div>
       <div className="container">
-        {/* <Pop /> */}
         <Map />
         <Chat />
+        <Modal isOpen={modalIsOpen}>
+          <Welcome onSubmit={setModalIsOpenToFalse} />
+        </Modal>
       </div>
 
     </div>
@@ -70,26 +81,46 @@ function SignOut() {
   )
 }
 
+/** 
+ * Is this a new user?
+ */
+function userDocExists() {
+  // Fetch the current user's ID from Firebase Authentication.
+  const { uid, _ } = auth.currentUser;
+
+  // create a reference to the doc in question
+  var userCollectionRef = firestore.collection("users").doc(uid)
+
+  // Check if the user has a doc
+  var exists = false;
+  userCollectionRef.get().then((doc) => {
+    exists = doc.exists
+  })
+
+  return exists;
+}
+
 async function usernameExists() {
   // Fetch the current user's ID from Firebase Authentication.
   const { uid, _ } = auth.currentUser;
 
   // Create a reference to this user's specific status node.
   // This is where we will store data about being online/offline.
-  var userCollectionRef = firestore.collection("users").doc("qqqq")
+  var userCollectionRef = firestore.collection("users").doc(uid)
 
   // Check if the user has a defined username
-  console.log("HHHHHH")
   var reply = await userCollectionRef.get().then((doc) => {
     if (!doc.data().username) {
+      console.log("NO USERNAME")
       return false
     }
     return true
   })
+
   return reply
 }
 
-function detectPresence() {
+async function detectPresence() {
 
   // Fetch the current user's ID from Firebase Authentication.
   const { uid, _ } = auth.currentUser;

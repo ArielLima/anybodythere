@@ -144,7 +144,7 @@ code {
   border: 1px solid lightgray;
 }
 
-form {
+.message-form {
   display:flex;
   /* justify-content: space-between; */
   position: fixed;

@@ -40,7 +40,7 @@ export function ChatRoom() {
           {messages && messages.map(msg => <Message key={msg.id} message={msg} />).reverse()}
           <span ref={dummy}></span>
         </ul>
-        <form onSubmit={sendMessage}>
+        <form className="message-form" onSubmit={sendMessage}>
           <input value={formValue} onChange={(e) => setFormValue(e.target.value)} placeholder="say something nice" />
           <button className="send-button" type="submit" >Send</button>
         </form>
